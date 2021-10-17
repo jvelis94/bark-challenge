@@ -4,3 +4,8 @@
     <%= image_tag url_for(dog.images.first), class: "dog-photo", alt: "Photo of #{dog.name}" %>
   </article>
 </a>
+<%= link_to "Like", dog_likes_path(dog), method: :post %>
+
+<div>
+  <%= image_tag("ad.jpg", width: 100) if dog.id.even?%> 
+</div>

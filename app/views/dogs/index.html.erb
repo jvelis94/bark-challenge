@@ -1,1 +1,12 @@
+<%= link_to "sort by likes in last hour", dogs_path(sort_by_likes: true) %>
+
 <%= render partial: 'thumbnail', collection: @dogs, as: :dog %>
+
+<div style="display: flex; align-items: center">
+    <% unless @page === 1 %>
+        <%= link_to "Previous Page", dogs_path(page: @page - 1) %>
+    <% end %>
+
+    <p><%= @page %></p>
+    <%= link_to "Next Page", dogs_path(page: @page + 1) %>
+</div>

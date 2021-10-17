@@ -1,10 +1,19 @@
 class DogsController < ApplicationController
   before_action :set_dog, only: [:show, :edit, :update, :destroy]
 
+  DOGS_PER_PAGE = 5
+
   # GET /dogs
   # GET /dogs.json
   def index
-    @dogs = Dog.all
+    # @dogs = Dog.all
+    @page = params.fetch(:page, 1).to_i
+    if params[:sort_by_likes]
+      @dogs = Dog.left_joins(:likes).group("id").order("count(likes.id) desc, likes.created_at desc")
+      .offset((@page-1) * DOGS_PER_PAGE).limit(DOGS_PER_PAGE)
+    else
+      @dogs = Dog.offset((@page-1) * DOGS_PER_PAGE).limit(DOGS_PER_PAGE)
+    end
   end
 
   # GET /dogs/1
@@ -19,17 +28,18 @@ class DogsController < ApplicationController
 
   # GET /dogs/1/edit
   def edit
+    redirect_to dogs_path if current_user != @dog.user
   end
 
   # POST /dogs
   # POST /dogs.json
   def create
     @dog = Dog.new(dog_params)
+    @dog.user = current_user
 
     respond_to do |format|
       if @dog.save
-        @dog.images.attach(params[:dog][:image]) if params[:dog][:image].present?
-
+        @dog.images.attach(params[:dog][:images]) if params[:dog][:images].present?
         format.html { redirect_to @dog, notice: 'Dog was successfully created.' }
         format.json { render :show, status: :created, location: @dog }
       else
@@ -44,7 +54,7 @@ class DogsController < ApplicationController
   def update
     respond_to do |format|
       if @dog.update(dog_params)
-        @dog.images.attach(params[:dog][:image]) if params[:dog][:image].present?
+        @dog.images.attach(params[:dog][:images]) if params[:dog][:images].present?
 
         format.html { redirect_to @dog, notice: 'Dog was successfully updated.' }
         format.json { render :show, status: :ok, location: @dog }
@@ -74,6 +84,6 @@ class DogsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def dog_params
-    params.require(:dog).permit(:name, :description, :images)
+    params.require(:dog).permit(:name, :description, images: [])
   end
 end
